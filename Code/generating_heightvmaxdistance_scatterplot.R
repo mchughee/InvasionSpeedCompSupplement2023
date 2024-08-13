@@ -23,7 +23,7 @@ disperse_cm_phen<-
   group_by(dispersal1L, observation, RIL) %>%
   mutate(tot_seeds = sum(seeds)) %>%
   group_by(RIL, observation, dist_cm) %>%
-  summarize(kernel=sum(seeds/tot_seeds),n=tot_seeds[1]) %>%
+  summarize(kernel=sum(seeds/tot_seeds),n=tot_seeds[1], treatment=treatment) %>%
   filter(kernel!=0) %>% 
   data.frame()
 
@@ -33,7 +33,7 @@ disperse_cm <- disperse_cm_phen %>%
   group_by(RIL, observation, treatment) %>% 
   summarise(max_distance = max(dist_cm))
 
-# first, read in trait data
+# read in trait data
 traits<-read.csv("Competition_Experiment_2022_PhenData.csv")
 cbind(disperse_cm, traits)->mastersheet
 
@@ -66,16 +66,24 @@ plyr::revalue(mastersheet$Habitat, c("LOLIUM" = "competition")) -> mastersheet$H
 
 ## make linear regression figure
 ## Next, make the actual figure
-library(ggplot2)
 
-
-ggplot(mastersheet, aes(x=Heightcm, y=max_distance, colour=Habitat))+
-  geom_point(aes(shape=Habitat), size=2)+
+regplot<-ggplot(mastersheet, aes(x=Heightcm, y=max_distance, colour=treatment))+
+  geom_point(aes(shape=treatment), size=2)+
   geom_smooth(method="lm", se=T)+
   ylab("maximum dispersal distance (cm)")+
   xlab("height (cm)")+
   theme_classic()+
-  scale_color_manual(values = c("competition" = "forestgreen", "no competition" = "black"))
+  scale_color_manual(values = c("competition" = "forestgreen", "no competition" = "black"))+
+  theme(legend.text=element_text(size=9), legend.direction = "vertical", legend.position="bottom")+
+  guides(fill=guide_legend(ncol=2))
+
+regplot
+
+pdf("Fig3.pdf",  width=2.95, height=4)
+
+regplot
+
+dev.off()
 
 # extract slopes
 
