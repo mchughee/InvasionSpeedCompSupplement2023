@@ -380,32 +380,54 @@ master %>%
 
 ## Plotting points for new manuscript figure November 2023-- effect of treatment on invasion speed in sims
 library(stringr)
+
 master_avg %>% 
   mutate(RIL=fct_relevel(RIL,"53", "187", "144", "58")) %>% 
   ggplot(aes(x=RIL, y=mean_speed, colour=type))+
-  geom_point(size=3.5)+
-  xlab("CVL")+
-  ylab("invasion speed (cm/generation)")+
+  geom_point(size=1.5)+
+  xlab("Genotype")+
+  ylab("invasion speed \n (cm/generation)")+
   labs(tag="A")+
   scale_colour_manual(values=c("black", "skyblue2", "coral1", "green4"))+
   theme_classic()+
   theme(legend.position = "none")+
-  theme(text=element_text(size=15), legend.text=element_text(size=15))+
+  theme(text=element_text(size=10), legend.text=element_text(size=7))+
   scale_x_discrete(labels = c("no competition" = "no competition", "dispersal reduced by competition" = "dispersal reduced \n by competition", "lambda reduced by competition"="lambda reduced \n by competition",  "both parameters reduced by competition"="both parameters reduced \n by competition"))->avg_fig
 
-master_avg %>% 
+cv_fig<-master_avg %>% 
   mutate(RIL=fct_relevel(RIL,"53", "187", "144", "58")) %>% 
   ggplot(aes(x=RIL, y=cv_speed, colour=type))+
-  geom_point(size=3.5)+
-  xlab("CVL")+
-  ylab("coefficient of variation of invasion speed")+
+  geom_point(size=1.5)+
+  xlab("Genotype")+
+  ylab("coefficient of variation \n of invasion speed")+
   labs(tag="B")+
   scale_colour_manual(values=c("black", "skyblue2", "coral1", "green4"))+
   theme_classic()+
-  theme(text=element_text(size=15), legend.text=element_text(size=15))+
-  scale_x_discrete(labels = c("no competition" = "no competition", "dispersal reduced by competition" = "dispersal reduced \n by competition", "lambda reduced by competition"="lambda reduced \n by competition",  "both parameters reduced by competition"="both parameters reduced \n by competition"))->cv_fig
+  theme(text=element_text(size=10), legend.text=element_text(size=7), legend.title=element_blank())+
+  scale_x_discrete(labels = c("no competition" = "no competition", "dispersal reduced by competition" = "dispersal reduced \n by competition", "lambda reduced by competition"="lambda reduced \n by competition",  "both parameters reduced by competition"="both parameters reduced \n by competition"))+
+  guides(colour=guide_legend(ncol=2))
 
-library(gridExtra)
-# library(ggpubr)
+cv_fig
 
-figure <- grid.arrange(avg_fig, cv_fig, nrow=1, widths= c(1, 2))
+library(cowplot)
+
+# Pull legend
+legend_b <- get_legend(cv_fig)
+legend<-plot_grid(legend_b)
+legend
+
+# pull plots
+plots<-plot_grid(avg_fig+ theme(legend.position="none"), cv_fig+ theme(legend.position="none"), label_size = 12, align="v")
+plots
+
+# Make figure
+
+fig_change<-ggdraw() +
+  draw_plot(plots, x = 0, y=0.25, width = 0.9, height=0.7) +
+  draw_plot(legend, x = 0.2, y=0.05, width = .5, height=0.1)
+
+pdf("Fig4_changed.pdf", width=4.33, height=2.75)
+
+fig_change
+
+dev.off()
