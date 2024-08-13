@@ -17,11 +17,19 @@ plyr::revalue(parms_raw$treatment, c("LOLIUM" = "competition")) -> parms_raw$tre
 
 write.csv(parms_raw, "parms_relevelled.csv")
 
-# Make boxplot
-ggplot(parms_raw, aes(genotype, meandispcm, fill=treatment))+
+boxplot<-ggplot(parms_raw, aes(genotype, meandispcm, fill=treatment))+
   geom_boxplot(stat="boxplot")+
-  xlab("CVL")+
+  xlab("Genotype")+
   ylab("mean dispersal (cm/generation)")+
   scale_fill_manual(values=c("green4", "grey"))+
-  theme_classic()
+  theme_classic()+
+  theme(text = element_text(size = 10), legend.text=element_text(size=9), legend.position="bottom")+
+  guides(fill=guide_legend(ncol=1))
+
+pdf("Fig2.pdf",  width=2.95, height=4)
+
+boxplot
+
+dev.off()
+
 
