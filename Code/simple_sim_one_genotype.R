@@ -1,23 +1,28 @@
-## basic script for simulation
-rm(list=ls(all=TRUE))
-## parameters (constant)
+## basic script for simulation, adapted from:
+## Williams, J.L, Snyder, R.E., and Levine, J.M. (2016b). The influence of
+## evolution on population spread through patchy landscapes. Am. Nat. 188(1): 15-26.
 
-# number of simulations
+rm(list=ls(all=TRUE))
+## Tell R our parameters for the model
+
+# how many simulations are we running the model for?
 nsim<-500
 
-# number of generations 
+# how many generations?
 tmax<-30
 
- #starting population for each strategy
+# how many individuals should make up the starting population?
 N_0 <- 3
 
-# length of environment
+# how long should the environment be for the simulation?
 patch<-300
 
-# number of genotypes / strategies to simulate at once
+# number of strategies/genotypes (in Williams 2016b, they use multiple strategies,
+# but here, we're just using one genotype)
 strat<-1
 
-# population / genotype trait parameters (may change)
+# genotype parameters (switch out these for the different combos of 
+# lambda and fecundity)
 
 #fecundity
 lambda<-68
@@ -34,47 +39,42 @@ m <- 2.607800
 
 ##########################################################
 
-#functions
-# here all all the functions used in simulations, main functions are denoted by three pound signs,
-# helper functions by two pounds.
+# Let's define some functions
 
-### seed production function
-# Beverton-Holt model of density dependent growth, modified to consider all individuals in a patch 
-# as competitors, but only the relevant subpopulation for growth rate
-# computed for each strategy population j across the landscape of n patches (vectorized)
+# First, the function for seed production-- using modified Beverton-Holt
 
 growth <- function(j,k,lambda){ 
-  # j is number of individuals belonging to strategy j in patch x in 1:n, 
-  # k is total population of all strategies in patch x in 1:n
-  # lambda is reproductuve rate at low density of strategy j
-  # first create a vector to store seeds 
+  # j= # of plants of genotype j
+  # k=  total population
+  # lambda= low-density reproductive rate
+  
+  # vector for storing reproductive output
   seeds<-vector()
-  # compute stochastic Beverton-Holt population growth model
+  # stochastic Beverton-Holt model
   seeds<-round((lambda*j)/(1+alpha*(k-1)),0)
   return(rpois(length(seeds),seeds))
 }
 
 ### dispersal function 
-# move seeds in patch x to patch y according to exponential dispersal kernel
-# with random direction (forward & back)
+# allow seeds to disperse randomly from x to y
+# dispersal kernel is exponential
+# seeds can move backward and forward
 
 disperse<-function(x,y,m){ 
-  # x is the number of seeds in the patch to disperse
-  # y is the row index of the patch in pair-wise distance matrix
-  # m is the parameter defining the dispersal kernel
-  # first define a vector to store dispersal distances
+  # x= number of dispersing seeds a patch
+  # y = the row that the patch is in
+  # m = disperal parameter
+  # pmove will store our dispersal distances for each seed
   pmove<-vector("numeric", patch)
-  # if there are no seeds in patch x, return the empty vector
+  # if no seeds in x, return empty value
   if (x==0)
     return(pmove)
-  # otherwise, compute distance and direction with helper functions below
+  # otherwise,  direction*distance to find movement of seeds
   else
     move<-distance(x,m)*direction(x)
   for (i in 1:x){ 
-    #this moves seeds to their new home, x is number of seeds, compute for each seed 
+    # move seeds to new patch
     for (j in 1:patch){ 
-      #this finds the corresponding home for each seed 
-      # place(move[i],pwdist[y,j],pmove[j])
       if (move[i]==pwdist[y,j])
       {pmove[j]<-pmove[j]+1}
     }
@@ -82,39 +82,34 @@ disperse<-function(x,y,m){
   return(pmove) 
 }
 
-## helper function for disperse-- generate random distances, 
-# parameters are from disperse function:
-# x is the number of seeds in the patch
-# m is the defined dispersal kernel parameter
+### distance function will generate random distances
+
 distance<-function(x,m){
-  # generate x random variates from exponental kernel with rate=m
   dist<-round(rexp(x,m),0)
   return(dist)
 }
 
-## helper function for disperse-- generate random directions,
-# x is from disperse, number of seeds in patch
+## direction function will generate random directions,
 direction<-function(x){
-  # draw x random variates from binomial distribution with p=0.5
+  # draw random directions from binomial distribution
   dir<-rbinom(x,1,0.5)
-  # refactor results so that 0's return -1 to indicate negative direction
-  # (disperse backwards/leftwards)
+  # refactor function (defined below) tells us that anything with a direction of 0 should be -1
+  # tells us seeds are dispersing backwards or leftwards
   sapply(dir,refactor)
 }
 
-## helper for direction-- refactor 0 to -1
+## this is where we define refactor
 refactor<-function(x){ 
-  #  x is values from binomial distribution in direction
+  #  the x in this equation comes from the random binomial draws previously
   if (x==0)
     x<- -1
   else x
 }
 
-### find the leading edge patch to record speed of advance
+### get the patch at the leading edge
 
 lemove<-function(x){ 
-  # x is the row in spread matrix corresponding to time t
-  # compute the 
+  # x= row in spread matrix
   moved<-patch-pleft(rev(x))
   if (moved == 0){
     return(moved)
@@ -125,29 +120,27 @@ lemove<-function(x){
   }
   
 }
-#lemove helper how many patches left to colonize
+# helper function tells us how many patches there are left in the landscape that haven't been colonized
 pleft<-function(x){ 
-  # x is from lemove, the row in spread matrix corresponding to time t
-  # note we reverse the order so the first value in x corresponds to the right-most patch 
-  # set index value y -- counts how far from the rightmost patch the leading edge is
+  # x is x from lemove-- i.e. the patch at the leading edge!
+  # y tells us how far the leading edge is from the end of the landscape
   y<-0
-  # for each patch, check if there is a non-zero population
+  # check that each patch has a pop>0
   for (k in 1:patch){
     if (x[k] != 0){
-      # halt once we reach the leading edge
+      # once we reach the leading edge, stop
       break
     }
-    # otherwise, add one to the index
+    # otherwise, add a patch to y
     else y<-y+1
   }
   return(y)
 }
 
-### calculate how many patches the leading edge moves each generation
-# note this function assumes that only one patch is colonized at start
+### speed function tells us how the leading edge moves with each generation
 speed<- function(x,y){ 
-  # x is vector of the leading edge patch each generation
-  # y is the output vector, showing the number of patches the leading edge moved
+  # x = leading edge patch, a vector
+  # y = number of patches moved (this is our output!)
   for (i in 1:tmax){
     if (i == 1){
       y[i]<-x[i]-1
@@ -160,29 +153,24 @@ speed<- function(x,y){
   }
   return(y)
 }
-##########################################################
+###################
 
 # Initialize data structures
 
 
-#Population Spread Matrix
-#Adds values to each row for each generation
-#Coloumns correspond to patches
+#Population Spread Matrix - each column is a new patch. This will be added to each
+# generation as plants grow and disperse seeds
 spread1<-matrix(0,tmax,patch)
 spread1[1,1]<-N_0
 
-#Seeds Dispersed
-#matrix for storing seeds produced, resets each generation
+#Seeds Dispersed- stores the dispersed seeds in each generation
 seeds<-matrix(NA,strat,patch)
 
-#matrix containing number of plants/seeds in each patch after dispersal
-#rows are originating patches where seeds were produced,
-#coloumns are where they disperse to
+# stores the number of individuals in each patch after a dispersal event, with
+# rows indicating where seeds were producing, and columns indicated where seeds end up
 seedsd1<-matrix(0,patch,patch)
 
-# Pairwise Distances Matrix for computing dispersal
-# Distances between patch i,j for row i 
-# and coloumn j
+# Pairwise Distances Matrix stores distances between patch i, j
 pwdist<-matrix(NA,patch,patch)
 for (i in 1:patch){
   for (j in 1:patch){
@@ -191,50 +179,51 @@ for (i in 1:patch){
   }
 }
 
-#matrix for storing data from the last generation of spread 
+#matrix stores last generation of spread--this is key
 tmax_pop<-matrix(NA,nsim,patch)
-#Vector for the extent of each strategy
+#Vector to store max spread dist for each strategy (again, we only have one here)
 ledge<-vector("numeric",strat)
 
 
-# vectors for storing colonized patches
+# matrices contain the colonized patches
 pcol<-matrix(NA, nrow=strat+1, ncol=tmax-1)
 tcol<-matrix(NA,nrow=nsim,ncol=tmax-1)
 
 ####################################################################
 
-#Run Simulation 
+#Finally! the simulation 
 for (x in 1:nsim){
   for (i in 1:(tmax-1)){
     
-    #produce seeds for each strategy in each patch
+    #produce seeds
     seeds[1,]<-growth(spread1[i,],spread1[i,],lambda) 
     
     for (j in 1:patch){  
       
-      #disperse seeds for each strategy in each patch
+      # let those seeds disperse
       seedsd1[j,]<-disperse(seeds[1,j],j,m[1])
       
-      #fill in next row in population matrix
+      # populate the spread matrix
       spread1[i+1,]<-apply(seedsd1,2,sum)  
       
-      #calculate how many patches the leading edge has advanced
+      #find how far the leading edge has spread in this generation
       pcol[1,i]<-lemove(spread1[i+1,])
     }
     
-    #fill in population matrix for last generation 
+    # put this handy info into tmax
     tmax_pop[x,]<-spread1[tmax,]
     
     for (i in 1:strat){
-      # calculate the leading edge patch for each strategy
-      # at the last generation
+      # this is strategy stuff that is not important because we only have one "strategy" (one genotype)
       ledge[i]<-lemove(tmax_pop[i,])
     }}
-    
-    # save extent and speed matrices to CSV
-    write.csv(spread1,file=paste0("spread187_memp_lcomp_wholepot",x,".csv"))
-    write.csv(pcol,file=paste0("leading187_memp_lcomp_wholepot",x,".csv"))
+  
+  # save matrices
+  write.csv(spread1,file=paste0("spread187_memp_lcomp_wholepot",x,".csv"))
+  write.csv(pcol,file=paste0("leading187_memp_lcomp_wholepot",x,".csv"))
 }
+# the most important matrix!! This one saves the populations during the last generation of spread
+# at each patch in the landscape
 write.csv(tmax_pop,file=paste0("lastgens187_memp_lcomp_wholepot.csv"))
  
 
