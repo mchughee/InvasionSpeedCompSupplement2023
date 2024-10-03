@@ -9,22 +9,22 @@ library(ggplot2)
 library(car)
 library(dplyr)
 
-# read in new dataset
+# read in our kernels
 mval<-read.csv("simulationmaterialsfall2023/compexp2022.kernelwholepotmomis0.summary.csv")
 
-# Read in old data set and manipulate to get number of germinating seedlings per runways, which will be our measures of fecundity for the simulation
+# Read in raw dataset and manipulate to get number of germinating seedlings per runways, which will be our measures of fecundity for the simulation
 disperse<-read.csv("Competition_Dispersal_2022.csv")
 disperse$observation <- 1:nrow(disperse) 
 disperse %>% 
   summarize(germ_total=(rowSums(across(X0:X40))), RIL=RIL, observation=observation, Rep=Rep, treatment=treatment)->sum_germ
 
 
-# Bind with output from fitting m values
+# Bind with output from fitting m values to create master datasheet with fecundity values and m values
 cbind(sum_germ$germ_total, mval)->master
 colnames(master)[1] <- "germnum"
 
 
-# time to reduce germ number for competitive runways
+# time to reduce germ number for competitive runways using the lambda reduction values calculated from Lustenhouwer et al. 2019
 
 master$lambda_compyes<-case_when(
   master$RIL=="53"~ master$germnum*0.095238095,
@@ -44,7 +44,8 @@ master$lambda_compno<-case_when(
 master$RIL<-as.factor(master$RIL)
 master$treatment<-as.factor(master$treatment)
 
-## Okay, time to take averages. let's subdivide the data to get going:
+## Now, we're going to calculate the average lambda and m values across replicates
+## Let's subdivide the data to get going:
 
 empty53<-subset(master, treatment=="EMPTY" & RIL=="53")
 lolium53<-subset(master, treatment=="LOLIUM" & RIL=="53")
@@ -59,7 +60,7 @@ empty187<-subset(master, treatment=="EMPTY" & RIL=="187")
 lolium187<-subset(master, treatment=="LOLIUM"& RIL=="187")
 
 
-# alright, now let's take the actual averages for m
+# alright, now let's take the actual averages for m for each replicate
 
 ### 53
 ### disp comp no
