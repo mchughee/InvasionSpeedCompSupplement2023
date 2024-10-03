@@ -1,12 +1,19 @@
 # figure generation for 500-patch simulations
-# first, read in last gens file
+# this code was written before Erin knew how to write loops!! She apologizes for the clunkiness of the code!!
+
+# load library
 library(dplyr)
 library(tidyverse)
 library(ggplot2)
 library(car)
 
+# first, read in last gens file
 setwd("C:/Users/erinm/Dropbox/Williams' Lab/Arabidopsis/UBC_data/Competition Experiment 2022")
 empty53<-read.csv("simulationmaterialsfall2023/53memp_lemp/lastgens53memp_lemp_wholepot.csv")
+
+# Add in variables that describe the combo of parameters, the geno, and the observation number. This will help us
+# keep track of which geno/parameter combo it is down the line!
+
 empty53$type<-"empty, empty"
 empty53$RIL<-"53"
 empty53$rep<-1:nrow(empty53)
@@ -79,7 +86,7 @@ memp53max$type<-"m empty, lamda comp"
 memp53max$RIL<-"53"
 memp53max$speed<-(memp53max$max_dist)/30
 
-# bind into one master sheet
+# bind the different dataframes for each parameter combo for the genotype into one master sheet
 sheet53<-rbind(empty53max, comp53max, mcomp53max, memp53max)
 
 # make boxplot
