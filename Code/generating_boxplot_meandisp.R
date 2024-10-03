@@ -17,6 +17,7 @@ plyr::revalue(parms_raw$treatment, c("LOLIUM" = "competition")) -> parms_raw$tre
 
 write.csv(parms_raw, "parms_relevelled.csv")
 
+# make plot
 boxplot<-ggplot(parms_raw, aes(genotype, meandispcm, fill=treatment))+
   geom_boxplot(stat="boxplot")+
   xlab("Genotype")+
