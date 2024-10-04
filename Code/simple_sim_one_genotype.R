@@ -30,7 +30,7 @@ strat<-1
 #fecundity - change depending on which genotype/combo we're running
 lambda<-68
 
-# competitive ability- let's keep this one constant
+# competitive ability- keep this one constant
 alpha<-0.1
 
 # dispersal ability-change depending on which genotype/combo we're running
@@ -44,13 +44,12 @@ m <- 2.607800
 
 # Let's define some functions
 
-# First, the function for seed production-- using modified Beverton-Holt
-
-growth <- function(j,k,lambda){ 
-  # j= # of plants of genotype j
+# First, the function for seed production-- using modified Beverton-Holt where:
+ # j= # of plants of genotype j
   # k=  total population
   # lambda= low-density reproductive rate
-  
+
+growth <- function(j,k,lambda){ 
   # tell r to populate the vector, seeds, with the output of the stochastic Beverton-Holt model
   seeds<-vector()
   seeds<-round((lambda*j)/(1+alpha*(k-1)),0)
