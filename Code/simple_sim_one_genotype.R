@@ -17,20 +17,20 @@ N_0 <- 3
 # how long should the environment be for the simulation?
 patch<-300
 
-# number of strategies/genotypes (in Williams 2016b, they use multiple strategies,
+# how many genotypes or strategies are there? (in Williams 2016b, they use multiple strategies,
 # but here, we're just using one genotype)
 strat<-1
 
 # genotype parameters (switch out these for the different combos of 
 # lambda and fecundity)
 
-#fecundity
+#fecundity - change depending on which genotype/combo we're running
 lambda<-68
 
-# competitive ability
+# competitive ability- let's keep this one constant
 alpha<-0.1
 
-# dispersal ability
+# dispersal ability-change depending on which genotype/combo we're running
 m <- 2.607800
 
 
@@ -58,7 +58,7 @@ growth <- function(j,k,lambda){
 ### dispersal function 
 # allow seeds to disperse randomly from x to y
 # dispersal kernel is exponential
-# seeds can move backward and forward
+# "disperse randomly" means seeds can move backward and forward
 
 disperse<-function(x,y,m){ 
   # x= number of dispersing seeds a patch
@@ -82,19 +82,18 @@ disperse<-function(x,y,m){
   return(pmove) 
 }
 
-### distance function will generate random distances
+### distance function will generate random distances, moving x number of seeds using the dispersal parameter m
 
 distance<-function(x,m){
   dist<-round(rexp(x,m),0)
   return(dist)
 }
 
-## direction function will generate random directions,
+## direction function will generate random directions for x number of seeds to disperse in,
+#drawing random directions from a binomial distribution where p=0.5
+## and any draws of 0 get refactored to -1 so that seeds are dispersing backwards
 direction<-function(x){
-  # draw random directions from binomial distribution
   dir<-rbinom(x,1,0.5)
-  # refactor function (defined below) tells us that anything with a direction of 0 should be -1
-  # tells us seeds are dispersing backwards or leftwards
   sapply(dir,refactor)
 }
 
@@ -109,7 +108,7 @@ refactor<-function(x){
 ### get the patch at the leading edge
 
 lemove<-function(x){ 
-  # x= row in spread matrix
+  # x= row in spread matrix at time t
   moved<-patch-pleft(rev(x))
   if (moved == 0){
     return(moved)
@@ -125,13 +124,13 @@ pleft<-function(x){
   # x is x from lemove-- i.e. the patch at the leading edge!
   # y tells us how far the leading edge is from the end of the landscape
   y<-0
-  # check that each patch has a pop>0
+  # Here, we tell R to check each patch to see if the population is greater than 0 
   for (k in 1:patch){
     if (x[k] != 0){
-      # once we reach the leading edge, stop
+      # once we reach a patch with pop=0 (aka the leading edge)
       break
     }
-    # otherwise, add a patch to y
+    # if we haven't reached the leading edge at that patch, add a patch to y
     else y<-y+1
   }
   return(y)
@@ -139,7 +138,7 @@ pleft<-function(x){
 
 ### speed function tells us how the leading edge moves with each generation
 speed<- function(x,y){ 
-  # x = leading edge patch, a vector
+  # x = leading edge patch
   # y = number of patches moved (this is our output!)
   for (i in 1:tmax){
     if (i == 1){
@@ -163,7 +162,7 @@ speed<- function(x,y){
 spread1<-matrix(0,tmax,patch)
 spread1[1,1]<-N_0
 
-#Seeds Dispersed- stores the dispersed seeds in each generation
+#seeds stores seeds produced in each generation
 seeds<-matrix(NA,strat,patch)
 
 # stores the number of individuals in each patch after a dispersal event, with
@@ -179,7 +178,7 @@ for (i in 1:patch){
   }
 }
 
-#matrix stores last generation of spread--this is key
+# the most important part-- tmax_pop matrix stores last generation of spread
 tmax_pop<-matrix(NA,nsim,patch)
 #Vector to store max spread dist for each strategy (again, we only have one here)
 ledge<-vector("numeric",strat)
@@ -210,7 +209,7 @@ for (x in 1:nsim){
       pcol[1,i]<-lemove(spread1[i+1,])
     }
     
-    # put this handy info into tmax
+    # put this handy info into tmax (our population matrix)
     tmax_pop[x,]<-spread1[tmax,]
     
     for (i in 1:strat){
