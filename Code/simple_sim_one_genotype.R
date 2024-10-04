@@ -6,7 +6,7 @@
 #188(1), 15-26.
 
 rm(list=ls(all=TRUE))
-## Tell R our parameters for the model
+## Tell R our *fixed* parameters for the model
 
 # how many simulations are we running the model for?
 nsim<-500
@@ -24,7 +24,7 @@ patch<-300
 # but here, we're just using one genotype)
 strat<-1
 
-# genotype parameters (switch out these for the different combos of 
+## genotype parameters (switch out these for the different combos of 
 # lambda and fecundity)
 
 #fecundity - change depending on which genotype/combo we're running
@@ -51,9 +51,8 @@ growth <- function(j,k,lambda){
   # k=  total population
   # lambda= low-density reproductive rate
   
-  # vector for storing reproductive output
+  # tell r to populate the vector, seeds, with the output of the stochastic Beverton-Holt model
   seeds<-vector()
-  # stochastic Beverton-Holt model
   seeds<-round((lambda*j)/(1+alpha*(k-1)),0)
   return(rpois(length(seeds),seeds))
 }
@@ -67,12 +66,12 @@ disperse<-function(x,y,m){
   # x= number of dispersing seeds a patch
   # y = the row that the patch is in
   # m = disperal parameter
-  # pmove will store our dispersal distances for each seed
+  # Tell r to create a vector with the patch number and use if else statement to change patch number in vector
   pmove<-vector("numeric", patch)
   # if no seeds in x, return empty value
   if (x==0)
     return(pmove)
-  # otherwise,  direction*distance to find movement of seeds
+  # otherwise,  multiply direction by distance to find movement vector of seeds
   else
     move<-distance(x,m)*direction(x)
   for (i in 1:x){ 
@@ -85,7 +84,8 @@ disperse<-function(x,y,m){
   return(pmove) 
 }
 
-### distance function will generate random distances, moving x number of seeds using the dispersal parameter m
+### distance function will generate random distances, moving x number of seeds by drawing distances from exponential dispersal
+### kernel with parameter m
 
 distance<-function(x,m){
   dist<-round(rexp(x,m),0)
@@ -122,7 +122,7 @@ lemove<-function(x){
   }
   
 }
-# helper function tells us how many patches there are left in the landscape that haven't been colonized
+# pleft function tells us how many patches there are left in the landscape that haven't been colonized
 pleft<-function(x){ 
   # x is x from lemove-- i.e. the patch at the leading edge!
   # y tells us how far the leading edge is from the end of the landscape
@@ -169,10 +169,10 @@ spread1[1,1]<-N_0
 seeds<-matrix(NA,strat,patch)
 
 # stores the number of individuals in each patch after a dispersal event, with
-# rows indicating where seeds were producing, and columns indicated where seeds end up
+# rows indicating where seeds were produced, and columns indicated where seeds end up
 seedsd1<-matrix(0,patch,patch)
 
-# Pairwise Distances Matrix stores distances between patch i, j
+# Pairwise Distances Matrix
 pwdist<-matrix(NA,patch,patch)
 for (i in 1:patch){
   for (j in 1:patch){
@@ -197,7 +197,7 @@ tcol<-matrix(NA,nrow=nsim,ncol=tmax-1)
 for (x in 1:nsim){
   for (i in 1:(tmax-1)){
     
-    #produce seeds
+    # make plants reproduce
     seeds[1,]<-growth(spread1[i,],spread1[i,],lambda) 
     
     for (j in 1:patch){  
