@@ -20,8 +20,7 @@ N_0 <- 3
 # how long should the environment be for the simulation?
 patch<-300
 
-# how many genotypes or strategies are there? (in Williams 2016b, they use multiple strategies,
-# but here, we're just using one genotype)
+# how many genotypes or strategies are there? (here, we're just using one genotype)
 strat<-1
 
 ## genotype parameters (switch out these for the different combos of 
