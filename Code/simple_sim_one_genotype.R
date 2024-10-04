@@ -1,6 +1,9 @@
 ## basic script for simulation, adapted from:
-## Williams, J.L, Snyder, R.E., and Levine, J.M. (2016b). The influence of
-## evolution on population spread through patchy landscapes. Am. Nat. 188(1): 15-26.
+## Urquhart, C.U., and Williams, J.L. (2021). Trait correlations and landscape fragmentation jointly alter expansion speed via evolution
+## at the leading edge in simulated range expansions. Theor. Ecol. 14(3), 381-394.
+## and from
+## Williams, J.L., Snyder, R.E., and Levine, J.M. (2016b). The influence of evolution on population spread through patchy landscapes. Am. Nat. 
+#188(1), 15-26.
 
 rm(list=ls(all=TRUE))
 ## Tell R our parameters for the model
