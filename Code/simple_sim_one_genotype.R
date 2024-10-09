@@ -59,11 +59,13 @@ growth <- function(j,k,lambda){
 # dispersal kernel follows exponential distribution
 # "disperse randomly" means seeds can move backward and forward
 
-disperse<-function(x,y,m){ 
-  # x= number of dispersing seeds a patch
+# This is our main function-- others below are helpers
+# here:
+ # x= number of dispersing seeds a patch
   # y = the row that the patch is in
   # m = disperal parameter
   # Tell r to create a vector with the patch number and use if else statement to change patch number in vector
+disperse<-function(x,y,m){ 
   pmove<-vector("numeric", patch)
   # if no seeds in x, return empty value
   if (x==0)
@@ -81,7 +83,6 @@ disperse<-function(x,y,m){
   return(pmove) 
 }
 
-### some helper functions:
 ### distance function will generate random distances, moving x number of seeds by drawing distances from exponential dispersal
 ### kernel with parameter m
 
@@ -91,8 +92,8 @@ distance<-function(x,m){
 }
 
 ## direction function will generate random directions for x number of seeds to disperse in,
-#drawing random directions from a binomial distribution where p=0.5
-## and any draws of 0 get refactored to -1 so that seeds are dispersing backwards
+# by drawing random directions from a binomial distribution (rbinom)
+# and where any draws of 0 get refactored to -1 so that seeds are dispersing backwards
 direction<-function(x){
   dir<-rbinom(x,1,0.5)
   sapply(dir,refactor)
@@ -100,7 +101,6 @@ direction<-function(x){
 
 ## this is where we define refactor for the above function
 refactor<-function(x){ 
-  #  the x in this equation comes from the random binomial draws previously
   if (x==0)
     x<- -1
   else x
@@ -111,7 +111,9 @@ refactor<-function(x){
 lemove<-function(x){ 
   # x= row in spread matrix at time t
   moved<-patch-pleft(rev(x))
+ # moved= number of patches in simulation minus patches left to be colonized
   if (moved == 0){
+   # if moved==0, this means the population has spread across the landscape
     return(moved)
   }
   else{
@@ -137,11 +139,10 @@ pleft<-function(x){
   return(y)
 }
 
-### speed function tells us how the leading edge moves with each generation
+### speed function tells us how the leading edge moves with each generation, where:
  # x = leading edge patch
   # y = number of patches moved (this is our output!)
 speed<- function(x,y){ 
- 
   for (i in 1:tmax){
     if (i == 1){
       y[i]<-x[i]-1
@@ -161,6 +162,8 @@ speed<- function(x,y){
 
 #Population Spread Matrix - each column is a new patch. This will be added to each
 # generation as plants grow and disperse seeds
+# in Urquhart et al. 2021, they have a bunch of strategies, so they need a bunch of spread matrices
+# We only have one geno/strategy so we only need one.
 spread1<-matrix(0,tmax,patch)
 spread1[1,1]<-N_0
 
@@ -180,7 +183,8 @@ for (i in 1:patch){
   }
 }
 
-# the most important part-- tmax_pop matrix stores last generation of spread
+# the most important part-- tmax_pop matrix stores populations in each patch of the landscape
+# during last generation of the simulation
 tmax_pop<-matrix(NA,nsim,patch)
 #Vector to store max spread dist for each strategy (again, we only have one here)
 ledge<-vector("numeric",strat)
