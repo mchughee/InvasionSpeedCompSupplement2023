@@ -23,20 +23,17 @@ patch<-300
 # how many genotypes or strategies are there? (here, we're just using one genotype)
 strat<-1
 
+# competitive ability- keep this one constant
+alpha<-0.1
+
 ## genotype parameters (switch out these for the different combos of 
 # lambda and fecundity)
 
 #fecundity - change depending on which genotype/combo we're running
 lambda<-68
 
-# competitive ability- keep this one constant
-alpha<-0.1
-
 # dispersal ability-change depending on which genotype/combo we're running
 m <- 2.607800
-
-
-
 
 
 ##########################################################
@@ -45,7 +42,7 @@ m <- 2.607800
 
 # First, the function for seed production-- using modified Beverton-Holt where:
  # j= # of plants of genotype j
-  # k=  total population
+  # k=  total population (going to be the same as j, here, as we only have one geno/strategy)
   # lambda= low-density reproductive rate
 
 growth <- function(j,k,lambda){ 
@@ -57,7 +54,7 @@ growth <- function(j,k,lambda){
 
 ### dispersal function 
 # allow seeds to disperse randomly from x to y
-# dispersal kernel is exponential
+# dispersal kernel follows exponential distribution
 # "disperse randomly" means seeds can move backward and forward
 
 disperse<-function(x,y,m){ 
@@ -98,7 +95,7 @@ direction<-function(x){
   sapply(dir,refactor)
 }
 
-## this is where we define refactor
+## this is where we define refactor for the above function
 refactor<-function(x){ 
   #  the x in this equation comes from the random binomial draws previously
   if (x==0)
@@ -120,7 +117,7 @@ lemove<-function(x){
   }
   
 }
-# pleft function tells us how many patches there are left in the landscape that haven't been colonized
+# pleft function tells us how many patches there are left in the landscape that haven't been colonized- used in lemove function
 pleft<-function(x){ 
   # x is x from lemove-- i.e. the patch at the leading edge!
   # y tells us how far the leading edge is from the end of the landscape
@@ -191,26 +188,26 @@ tcol<-matrix(NA,nrow=nsim,ncol=tmax-1)
 
 ####################################################################
 
-#Finally! the simulation 
+#Finally! the simulation
 for (x in 1:nsim){
   for (i in 1:(tmax-1)){
     
-    # make plants reproduce
+    # make plants reproduce according to our Beverton-Holt growth function
     seeds[1,]<-growth(spread1[i,],spread1[i,],lambda) 
     
     for (j in 1:patch){  
       
-      # let those seeds disperse
+      # let those seeds randomly disperse into other patches in the landscape
       seedsd1[j,]<-disperse(seeds[1,j],j,m[1])
       
-      # populate the spread matrix
+      # populate the spread matrix-- record where seeds are going!!
       spread1[i+1,]<-apply(seedsd1,2,sum)  
       
-      #find how far the leading edge has spread in this generation
+      #find how far the leading edge has moved in this generation
       pcol[1,i]<-lemove(spread1[i+1,])
     }
     
-    # put this handy info into tmax (our population matrix)
+    # put this handy info into tmax (our population spread matrix)
     tmax_pop[x,]<-spread1[tmax,]
     
     for (i in 1:strat){
