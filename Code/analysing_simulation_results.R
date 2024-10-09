@@ -7,6 +7,7 @@ library(tidyverse)
 library(ggplot2)
 library(car)
 
+
 # first, read in last gens file
 setwd("C:/Users/erinm/Dropbox/Williams' Lab/Arabidopsis/UBC_data/Competition Experiment 2022")
 empty53<-read.csv("simulationmaterialsfall2023/53memp_lemp/lastgens53memp_lemp_wholepot.csv")
@@ -362,14 +363,14 @@ master$speedcm<-master$speed*8
 library(plyr)
 library(goeveg)
 ### Change level names for "type" to be clearer!
-revalue(master$type, c("m empty, lambda empty" = "no competition")) -> master$type
+plyr::revalue(master$type, c("m empty, lambda empty" = "no competition")) -> master$type
 
-revalue(master$type, c("m comp, lambda comp" = "both parameters reduced by competition")) -> master$type
+plyr::revalue(master$type, c("m comp, lambda comp" = "both parameters reduced by competition")) -> master$type
 
-revalue(master$type, c("m empty, lamda comp" = "lambda reduced by competition")) -> master$type
+plyr::revalue(master$type, c("m empty, lamda comp" = "lambda reduced by competition")) -> master$type
 # I forgot the b in lambda when I wrote out m empty, lambda comp, that's why it was acting funny
 
-revalue(master$type, c("m comp, lambda empty" = "dispersal reduced by competition")) -> master$type
+plyr::revalue(master$type, c("m comp, lambda empty" = "dispersal reduced by competition")) -> master$type
 
 #revalue(master$RIL, c("short, late-flowering"="187"))->master$RIL
 #revalue(master$RIL, c("tall, early-flowering"="53"))->master$RIL
@@ -378,7 +379,6 @@ revalue(master$type, c("m comp, lambda empty" = "dispersal reduced by competitio
 master$type <- factor(master$type, levels = c("no competition", "dispersal reduced by competition", "lambda reduced by competition", "both parameters reduced by competition"))
 
 # summarize into an average for each ril x treatment, plus coefficient of variation for each ril * treatment
-library(goeveg)
 
 master %>% 
   dplyr::group_by(RIL, type) %>% 
@@ -427,7 +427,7 @@ legend
 plots<-plot_grid(avg_fig+ theme(legend.position="none"), cv_fig+ theme(legend.position="none"), label_size = 12, align="v")
 plots
 
-# Make figure
+# Make compound figure
 
 fig_change<-ggdraw() +
   draw_plot(plots, x = 0, y=0.25, width = 0.9, height=0.7) +
