@@ -77,6 +77,7 @@ regplot<-ggplot(mastersheet, aes(x=Heightcm, y=max_distance, colour=treatment))+
   theme(legend.text=element_text(size=9), legend.direction = "vertical", legend.position="bottom")+
   guides(fill=guide_legend(ncol=2))
 
+# save as pdf
 regplot
 
 pdf("Fig3.pdf",  width=2.95, height=4)
