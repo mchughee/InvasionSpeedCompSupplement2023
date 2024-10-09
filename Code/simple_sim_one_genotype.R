@@ -5,7 +5,9 @@
 ## Williams, J.L., Snyder, R.E., and Levine, J.M. (2016b). The influence of evolution on population spread through patchy landscapes. Am. Nat. 
 #188(1), 15-26.
 
+# remove previous runs
 rm(list=ls(all=TRUE))
+
 ## Tell R our *fixed* parameters for the model
 
 # how many simulations are we running the model for?
@@ -79,6 +81,7 @@ disperse<-function(x,y,m){
   return(pmove) 
 }
 
+### some helper functions:
 ### distance function will generate random distances, moving x number of seeds by drawing distances from exponential dispersal
 ### kernel with parameter m
 
@@ -117,27 +120,28 @@ lemove<-function(x){
   }
   
 }
-# pleft function tells us how many patches there are left in the landscape that haven't been colonized- used in lemove function
+# pleft function tells us how many patches there are left in the landscape that haven't yet been colonized- used in lemove function
 pleft<-function(x){ 
-  # x is x from lemove-- i.e. the patch at the leading edge!
+  # x refers to row in landscape
   # y tells us how far the leading edge is from the end of the landscape
   y<-0
   # Here, we tell R to check each patch to see if the population is greater than 0 
+  # if we reach a patch with pop=0, that's the leading edge, so R can stop
+  # but if population is not zero, add a patch to y
   for (k in 1:patch){
     if (x[k] != 0){
-      # once we reach a patch with pop=0 (aka the leading edge)
       break
     }
-    # if we haven't reached the leading edge at that patch, add a patch to y
     else y<-y+1
   }
   return(y)
 }
 
 ### speed function tells us how the leading edge moves with each generation
-speed<- function(x,y){ 
-  # x = leading edge patch
+ # x = leading edge patch
   # y = number of patches moved (this is our output!)
+speed<- function(x,y){ 
+ 
   for (i in 1:tmax){
     if (i == 1){
       y[i]<-x[i]-1
